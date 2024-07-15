@@ -1,0 +1,123 @@
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', 'Lato', 'Open Sans', 'Montserrat', 'Poppins', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.header-fixed {
+    background-color: #031e3a;
+    box-shadow: 0 1px 1px #ccc;
+    padding: 10px 20px;
+    height: 60px;
+    color: #ffffff;
+    box-sizing: border-box;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-limiter {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-fixed h1 {
+    font-size: 24px;
+    margin: 0;
+}
+
+.header-fixed h1 span {
+    color: #5383d3;
+}
+
+.header-fixed a {
+    color: #ffffff;
+    text-decoration: none;
+    opacity: 0.9;
+}
+
+.header-fixed a:hover {
+    opacity: 1;
+}
+
+.container {
+    padding: 100px 20px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.input-form {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+input.input {
+    border: 2px solid blue;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 500px;
+    height: 40px;
+    padding: 0 15px;
+    font-size: 16px;
+    transition: box-shadow 0.3s ease;
+}
+
+input.input:focus {
+    box-shadow: 0 0 8px 2px #02f6fe;
+    outline: none;
+}
+
+.display-result {
+    text-align: center;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.words {
+    cursor: pointer;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #fff;
+    transition: background-color 0.3s ease;
+}
+
+.words:hover {
+    background-color: #bee3ff;
+}
+
+@media all and (max-width: 600px) {
+    .header-fixed {
+        padding: 10px;
+        height: auto;
+    }
+
+    .header-fixed h1 {
+        margin-bottom: 10px;
+    }
+
+    .header-limiter {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .header-fixed nav a {
+        margin: 5px 0;
+    }
+}
