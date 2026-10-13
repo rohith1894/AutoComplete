@@ -52,7 +52,7 @@ class Trie {
 const head = new Trie();
 
 function insertTrie(input) {
-    for (var i = 0; i < 370104; i++)
+    for (var i = 0; i < input.length; i++)
         head.add(input[i]);
 }
 
@@ -62,10 +62,10 @@ function searchEngine(word) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    fetch('/AutoComplete/words.txt')
+    fetch('words.txt')
         .then(response => response.text())
         .then(data => {
-            var input = data.split("\n");
+            var input = data.split(/\r?\n/);
             insertTrie(input);
         })
         .catch(error => console.error('Error fetching data:', error));
