@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => console.error('Error fetching data:', error));
 
-    document.querySelector('.input').addEventListener('keyup', function(event) {
+    document.querySelector('.input').addEventListener('input', function(event) {
         var input = event.target.value;
         if (input.length > 0) {
             input = input.toLowerCase();
