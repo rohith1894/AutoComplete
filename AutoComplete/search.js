@@ -1,61 +1,56 @@
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
 
-class Node {
+// Same shape as the classic C++ trie: 26 child pointers + an end-of-word flag.
+class TrieNode {
     constructor() {
+        this.children = new Array(26).fill(null);
         this.isEnd = false;
-        this.child = new Array(26).fill(null);
     }
 }
 
 class Trie {
     constructor() {
-        this.root = new Node();
-        this.list = [];
-        this.nodeCount = 1;
+        this.root = new TrieNode();
     }
 
-    add(str) {
-        let curr = this.root;
-        for (let i = 0; i < str.length; i++) {
-            const index = str.charCodeAt(i) - 97;
-            if (index < 0 || index > 25) continue;
-            if (curr.child[index] == null) {
-                curr.child[index] = new Node();
-                this.nodeCount++;
-            }
-            curr = curr.child[index];
+    insert(word) {
+        let node = this.root;
+        for (const ch of word) {
+            const i = ch.charCodeAt(0) - 97;
+            if (i < 0 || i >= 26) continue;
+            if (!node.children[i]) node.children[i] = new TrieNode();
+            node = node.children[i];
         }
-        curr.isEnd = true;
+        node.isEnd = true;
     }
 
-    // Depth-first search below `curr`, collecting every complete word.
-    helper(curr, postfix, prefix) {
-        if (curr.isEnd) this.list.push(prefix + postfix);
-        for (let i = 0; i < 26; i++)
-            if (curr.child[i] != null)
-                this.helper(curr.child[i], postfix + ALPHABET[i], prefix);
-    }
-
-    // Walks the prefix path; returns the node it ends on (or null if the prefix is absent).
-    findNode(prefix) {
-        let curr = this.root;
-        for (let i = 0; i < prefix.length; i++) {
-            const index = prefix.charCodeAt(i) - 97;
-            if (index < 0 || index > 25 || curr.child[index] == null) return null;
-            curr = curr.child[index];
+    // Walk down the prefix; return the last node, or null if the prefix is missing.
+    findPrefix(prefix) {
+        let node = this.root;
+        for (const ch of prefix) {
+            const i = ch.charCodeAt(0) - 97;
+            if (i < 0 || i >= 26 || !node.children[i]) return null;
+            node = node.children[i];
         }
-        return curr;
-    }
-
-    findPostFix(prefix) {
-        this.list = [];
-        const node = this.findNode(prefix);
-        if (node) this.helper(node, '', prefix);
         return node;
+    }
+
+    // DFS from a node, collecting every complete word below it.
+    collect(node, word, result) {
+        if (node.isEnd) result.push(word);
+        for (let i = 0; i < 26; i++)
+            if (node.children[i]) this.collect(node.children[i], word + ALPHABET[i], result);
+    }
+
+    autocomplete(prefix) {
+        const result = [];
+        const node = this.findPrefix(prefix);
+        if (node) this.collect(node, prefix, result);
+        return result;
     }
 }
 
-const head = new Trie();
+const trie = new Trie();
 const MAX_RENDERED = 200;
 
 const $ = (id) => document.getElementById(id);
@@ -74,14 +69,15 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 let animTimer = null;
 let currentSteps = [];
+let matchCount = 0;
 
 // Builds a small display tree: the prefix path, then a capped DFS subtree.
 function buildDisplayTree(prefix) {
     const root = { label: '∅', kind: 'path', isEnd: false, children: [], word: '' };
-    let node = head.root;
+    let node = trie.root;
     let disp = root;
     for (const ch of prefix) {
-        const next = node.child[ch.charCodeAt(0) - 97];
+        const next = node.children[ch.charCodeAt(0) - 97];
         if (!next) {
             disp.children.push({ label: ch, kind: 'missing', children: [], word: '' });
             return { root, found: false };
@@ -98,13 +94,13 @@ function buildDisplayTree(prefix) {
 
 function expand(trieNode, disp, depth) {
     if (depth >= SUBTREE_DEPTH) {
-        const n = trieNode.child.filter(Boolean).length;
+        const n = trieNode.children.filter(Boolean).length;
         if (n) disp.children.push({ label: '+' + n, kind: 'more', children: [], word: '' });
         return;
     }
     let shown = 0, hidden = 0;
     for (let i = 0; i < 26; i++) {
-        const c = trieNode.child[i];
+        const c = trieNode.children[i];
         if (!c) continue;
         if (shown >= MAX_CHILDREN) { hidden++; continue; }
         const d = { label: ALPHABET[i], kind: 'dfs', isEnd: c.isEnd, children: [], word: disp.word + ALPHABET[i] };
@@ -210,7 +206,7 @@ function animate(found, prefix) {
         if (prev) prev.el.classList.remove('current');
         if (i >= currentSteps.length) {
             log.innerHTML = found
-                ? `Done: matched <b>"${prefix}"</b> in ${prefix.length} steps (O(L)), then the DFS collected <b>${head.list.length.toLocaleString()}</b> words.`
+                ? `Done: matched <b>"${prefix}"</b> in ${prefix.length} steps (O(L)), then the DFS collected <b>${matchCount.toLocaleString()}</b> words.`
                 : `<b>"${prefix}"</b> isn't in the trie, so the search stops at the first missing character.`;
             return;
         }
@@ -249,9 +245,9 @@ function update() {
         return;
     }
     const t0 = performance.now();
-    head.findPostFix(word);
+    const arr = trie.autocomplete(word);
     const ms = performance.now() - t0;
-    const arr = head.list;
+    matchCount = arr.length;
 
     stats.innerHTML = arr.length
         ? `<b>${arr.length.toLocaleString()}</b> match${arr.length === 1 ? '' : 'es'} in ${ms.toFixed(1)} ms`
@@ -271,10 +267,10 @@ document.addEventListener('DOMContentLoaded', () => {
         .then((data) => {
             const words = data.split(/\r?\n/).filter(Boolean);
             const t0 = performance.now();
-            for (const w of words) head.add(w);
+            for (const w of words) trie.insert(w);
             const ms = performance.now() - t0;
             $('word-count').textContent = words.length.toLocaleString();
-            $('status').textContent = `${head.nodeCount.toLocaleString()} nodes · built in ${Math.round(ms)} ms`;
+            $('status').textContent = `Trie built in ${Math.round(ms)} ms`;
             input.disabled = false;
             input.focus();
             if (input.value) update();
