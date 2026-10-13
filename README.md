@@ -50,7 +50,6 @@ To keep the diagram readable, the visualization shows up to 3 levels below the p
 ## Project structure
 
 ```
-AutoComplete/
 ├── index.html   # Page layout
 ├── style.css    # Styles
 ├── search.js    # Trie implementation, search UI and visualization
@@ -63,7 +62,7 @@ No build step is needed. Serve the folder with any static server (the page fetch
 
 ```bash
 git clone https://github.com/rohith1894/AutoComplete.git
-cd AutoComplete/AutoComplete
+cd AutoComplete
 python3 -m http.server 8000
 ```
 
